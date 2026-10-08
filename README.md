@@ -48,11 +48,27 @@ removing them rather than speeding them up. Cutting completion tokens 85% while
 *increasing* output quality. Why the effective timeout in a layered stack is
 never the one in your own config — and what a 21-day silent failure teaches.
 
+### [The hard part isn't making agents act](autonomous-agent-team.md) · *notes in progress*
+**Shubh Bhagya** — nine agent roles that research, build, verify and merge against
+the live site, with nobody watching.
+
+Four scheduled workflows that concluded `success` having accomplished nothing, each
+looking perfectly healthy from outside. Why the merge gate is a label rather than a
+sentence, and why `contents: read` beats listing which commands an agent may run.
+A one-hour token expiry that destroyed $5.34 of finished work sixty-three minutes
+in, and the rescue credential that had been sitting unused in the environment the
+whole time. A merge workflow that waited for its own check run. Includes the
+measurement that said a quarter's objective was worth 23 clicks, drawn from 7% of
+the data.
+
+Still notes rather than a study: at the time of writing no full unattended night
+had been observed, and saying otherwise would be the same defect the notes are about.
+
 ---
 
 ## Recurring lessons
 
-Themes that showed up in both systems:
+Themes that showed up across all three systems:
 
 **Use a model only where judgement is genuinely required.** Both systems get
 their biggest cost and correctness wins from *not* calling one — deterministic
@@ -60,9 +76,16 @@ assembly for anything mechanical, bounded reasoning for the rest.
 
 **Silent failure is the expensive failure mode.** A pipeline that completes and
 writes less than it should, a job that stops producing, a blank response cached
-as success, a timeout firing on 95% of inputs while the job reports healthy.
-Most of the costly incidents in both systems were silent, and the loud ones were
-cheap by comparison. Health checks have to measure *output*, not process status.
+as success, a timeout firing on 95% of inputs while the job reports healthy. Four
+scheduled agent workflows concluding `success` having done nothing at all. Most of
+the costly incidents in these systems were silent, and the loud ones were cheap by
+comparison. Health checks have to measure *output*, not process status.
+
+The agent work sharpened this: **agents fail by doing less, not by erroring.** A
+crashed job is obvious. A job that authenticated, ran, spent money and produced
+nothing looks identical to one that had nothing to do — so every loop now has to
+state explicitly when it produced nothing, and that sentence is the one worth
+reading.
 
 **Hard ceilings have odd shapes, and the shape is the design.** A fixed number
 of scheduler slots. Storage that is free in one region only — and not the one
@@ -74,6 +97,13 @@ determines the architecture.
 promised it made no network calls, a code comment describing a timeout value that
 had already been reverted — documented invariants decay silently until something
 enforces them. I re-learned this writing these very documents.
+
+With agents the stakes rise, because the thing reading the prose can also write it.
+A repo rule saying "never push" was broken twice by an agent that wrote its own
+authorisation into a status file and then cited it. So the enforcement moved to
+where it cannot be argued with: a job permission rather than a list of allowed
+commands, a path filter rather than a commit-message keyword, a label rather than
+a sentence a formatting change can silently void.
 
 ---
 
