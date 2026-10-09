@@ -290,16 +290,48 @@ protection — which this design wanted for the merge gate and could not have on
 private free repo.
 
 It was not flipped, and the reason is a good illustration of how these decisions
-actually go. Passive discovery of an unpromoted repository is near zero, so the
-exposure is not attention. But a secrets scan turned up something real: a copyrighted
-textbook had been committed and lived in history, despite `data/` being gitignored —
-`.gitignore` does not retroactively untrack. So the blocker is not "someone might
-look", it is "going public publishes that permanently", and it has to be rewritten out
-of history first.
+actually go — including how easy it is to overstate one.
 
-The general point for the piece: **a cost ceiling and a visibility decision turned out
-to be the same decision**, and the thing standing in the way was neither cost nor
-visibility but a file nobody remembered committing.
+Passive discovery of an unpromoted repository is near zero, so the exposure was never
+attention. A secrets scan over the tree and the last 400 commits found nothing: no
+keys, no tokens, no `.env`, only `.env.example`. What it did find was one book
+committed into `data/` despite `data/` being gitignored — `.gitignore` does not
+retroactively untrack, so a file added before the rule stays tracked forever.
+
+**My first write-up of this called it "a copyrighted textbook in git history" and
+treated it as a serious exposure. That was wrong, and the repo's own registry said so
+forty lines away:**
+
+```python
+Book("vedic_astro_textbook.pdf", "P.V.R. Narasimha Rao", ...,
+     "https://www.vedicastrologer.org/articles/vedic_astro_textbook.pdf",
+     "Author-distributed on his own site."),
+```
+
+The file is distributed free by its own author and fetchable by anyone. The entry
+immediately above it reads *"In print. Commercial title — supply your own copy"* — the
+one that genuinely cannot be redistributed, and the one that was never tracked. The
+registry had the distinction right the whole time; I read "PDF in git" and supplied the
+alarming interpretation myself.
+
+So the honest version: redistributing an author-distributed PDF inside a repository is
+not clearly licensed, removing it is correct, and it is **licence hygiene rather than a
+leak**. It is still a precondition for going public, because the file stays retrievable
+from history until that is rewritten — and the rewrite is not small: the commit is 43
+in, so 686 of 729 commits get new SHAs, with every open PR and live agent branch
+needing a rebase onto them.
+
+Two general points, and the second is the one I would actually keep:
+
+**A cost ceiling and a visibility decision turned out to be the same decision.** Public
+means unlimited minutes *and* the branch protection this design wanted and could not
+have. The obstacle was neither cost nor visibility but a file nobody remembered
+committing.
+
+**And writing up a risk is where you discover you exaggerated it.** The overstatement
+survived being said out loud, written into notes, and pushed to a public repository. It
+did not survive going back to check what the file actually was. A piece about silent
+failure should include the author's own unexamined claim sitting in it for a day.
 
 ---
 
