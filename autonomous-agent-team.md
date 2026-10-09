@@ -217,6 +217,92 @@ documented risk, correctly identified, with the consequence guessed wrong.
 
 ---
 
+## The CI minute allowance is the real scheduler — and it runs out silently
+
+The repository is **private on the free tier: 2,000 Actions minutes a month.** That
+number, not the model quota, turned out to govern how often an autonomous system can
+run at all.
+
+Month-to-date on 2026-10-09, nine days in:
+
+| workflow | minutes | runs | per run |
+|---|---|---|---|
+| PR gates | 460 | 56 | ~8 |
+| production verification | 404 | 34 | ~12 |
+| **the agent delivery cycle** | **248** | 13 | ~19 |
+| committed-CSS build check | 113 | 74 | ~1.5 |
+| the six other agent loops | 87 | 83 | ~1 |
+| **total** | **1,312 of 2,000** | | |
+
+**The agents are the cheap part.** Verification costs 3.5x what the work costs: gates
+plus production checks are 864 minutes — 66% of everything — against 248 for the
+cycles that actually rank, design, build and QA. That is worth saying plainly, because
+the intuition runs the other way. A reasoning agent writing code for twenty minutes
+feels expensive; a test suite you run on every push, four times a day, with a mutation
+harness inside it, is where the budget actually goes.
+
+### The arithmetic that matters, and why it bites
+
+688 minutes left with 22 days to go is **31 minutes a day**. The observed rate after a
+day of optimisation was ~162. The worst single day was **552** — more than a quarter
+of a month's allowance in 24 hours.
+
+So the loop was running at roughly five times its sustainable rate, which means the
+allowance is not a background constraint. It is the binding one, and it has a hard
+edge:
+
+**When the minutes run out, workflows do not fail. They do not start.** No run, no
+check run, no annotation, no email. A pull request simply sits with nothing attached
+to it, and a merge gate that requires "all checks green" sees zero checks and refuses
+— correctly, and for a reason nothing in the repository explains.
+
+That is the thesis again, arriving from a completely different direction: **the
+platform's own exhaustion mode is silence that reads as nothing happening.** Every
+other silent failure in these notes was something we built. This one ships with the
+product.
+
+### What actually moved the number
+
+Two changes took the production check from ~19 minutes a run to ~3, and they generalise:
+
+- **Do not verify what cannot have changed.** The check ran on every push to `main`. Of
+  25 consecutive commits, **none** touched a path that ships — all were workflows,
+  agent definitions, scripts and reports. The fix is a path filter derived from the
+  Dockerfile's `COPY` lines rather than guessed, written as an ignore-list so a new
+  top-level directory defaults to *being verified*. Fail-safe direction matters more
+  than brevity here.
+- **Do not let one expensive step hide the cheap ones.** The smoke sweep was 10 of the
+  19 minutes and had started timing out; everything behind it was skipped. Removing
+  the 24 generating URLs — the same fix as the outage story — took the sweep to 1.6
+  minutes and let the most valuable assertion in the file run for the first time in
+  thirteen runs.
+
+Earlier, parallelising the mutation harness took it from 281s to 86s with the same
+50/50 mutations caught. It was 61% of every gate run. **Slow because thorough, not
+because wasteful** — so the answer was concurrency, not trimming coverage. Worth
+keeping as the counterexample to "cut the slow test".
+
+### The lever not pulled, and why it is interesting
+
+**A public repository gets unlimited Actions minutes.** The entire budget problem is a
+consequence of the repo being private, and flipping it would also unlock branch
+protection — which this design wanted for the merge gate and could not have on a
+private free repo.
+
+It was not flipped, and the reason is a good illustration of how these decisions
+actually go. Passive discovery of an unpromoted repository is near zero, so the
+exposure is not attention. But a secrets scan turned up something real: a copyrighted
+textbook had been committed and lived in history, despite `data/` being gitignored —
+`.gitignore` does not retroactively untrack. So the blocker is not "someone might
+look", it is "going public publishes that permanently", and it has to be rewritten out
+of history first.
+
+The general point for the piece: **a cost ceiling and a visibility decision turned out
+to be the same decision**, and the thing standing in the way was neither cost nor
+visibility but a file nobody remembered committing.
+
+---
+
 ## A test harness can lock a bug in place
 
 The static gate over the workflow files shipped with a mutation harness — it
@@ -439,6 +525,20 @@ suggested otherwise.
   3. *The harness that required a bug.* A mutation suite pinning a false positive as
      correct, so fixing the gate reads as a regression. This is the one a technical
      reader will not have seen before, so it goes last and lingers.
+- **The budget section is this study's tie into the collection's through-line** — every
+  system here runs against a ceiling that cannot be raised by spending. Lead with the
+  counterintuitive split: verification costs 3.5x the work. Then the hard edge, which
+  is the thesis arriving from outside: **when the minutes run out, workflows do not
+  fail, they do not start** — no run, no check, no error, and a merge gate that
+  correctly refuses a PR with zero checks for a reason nothing in the repo explains.
+  Every other silent failure in the piece is one we built; that one ships with the
+  platform.
+- **The public-repo lever is the right place to end the budget thread**, because the
+  answer is not a cost argument. Public means unlimited minutes *and* the branch
+  protection this design wanted and could not have. The blocker turned out to be a
+  copyrighted textbook sitting in git history, committed before `data/` was ignored —
+  `.gitignore` does not retroactively untrack. A cost ceiling and a visibility
+  decision were the same decision, and what stood in the way was neither.
 - **Let the ironies do the closing argument, not a conclusion.** An issue closed by
   the commit that fixed issue-closing; a sweep that broke production while checking
   it; a step that reported success for its whole life having never once run. They are
@@ -483,11 +583,12 @@ suggested otherwise.
 
 Answered since the first draft:
 
-- **Actions-minutes burn in steady state: ~162 min/day**, against 552 on the worst
-  day of iteration. The fall came from two changes, both worth a line in the piece:
-  the production check no longer runs on commits that cannot reach production (of 25
-  consecutive commits, *none* could), and the smoke sweep no longer probes the 24
-  pages that generate an LLM reading. The second is the same fix as the outage story.
+- **Actions-minutes burn: measured properly, and it is a live constraint rather than
+  a footnote.** 1,312 of 2,000 consumed in nine days, leaving 31 min/day sustainable
+  against an observed ~162 and a worst day of 552. Verification is 66% of it and the
+  agent cycles 19%. The two fixes that moved it are in the budget section; the open
+  question is whether a loop this expensive is viable on a private free repo at all,
+  or whether going public is a precondition rather than an option.
 - **Whether a full unattended run closes its own issue: yes, once.** `close-on-evidence`
   closed an issue on production evidence for the first time in the repo's history —
   and only after the nine breaks above were fixed. Do not overclaim this: the trigger

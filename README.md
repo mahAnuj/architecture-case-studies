@@ -69,6 +69,15 @@ nothing. And a one-hour token expiry that destroyed $5.34 of finished work
 sixty-three minutes in, with the rescue credential sitting unused in the environment
 the whole time.
 
+And the ceiling this one runs against is **2,000 GitHub Actions minutes a month** on a
+private free repo — which turns out to be the real scheduler, not the model quota.
+1,312 consumed in nine days, verification costing 3.5x what the agents' own work
+costs, and a hard edge worth knowing: when the minutes run out, workflows do not fail,
+**they do not start.** No run, no check, no error — and a merge gate that correctly
+refuses a pull request carrying zero checks, for a reason nothing in the repository
+explains. Every other silent failure in these notes is one we built; that one ships
+with the platform.
+
 Still notes rather than a study: no night has yet run unattended **through to the
 close**, the measurement arm has not yet successfully fed one, and saying otherwise
 would be the same defect the notes are about.
