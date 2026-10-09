@@ -52,17 +52,26 @@ never the one in your own config — and what a 21-day silent failure teaches.
 **Shubh Bhagya** — nine agent roles that research, build, verify and merge against
 the live site, with nobody watching.
 
-Four scheduled workflows that concluded `success` having accomplished nothing, each
-looking perfectly healthy from outside. Why the merge gate is a label rather than a
-sentence, and why `contents: read` beats listing which commands an agent may run.
-A one-hour token expiry that destroyed $5.34 of finished work sixty-three minutes
-in, and the rescue credential that had been sitting unused in the environment the
-whole time. A merge workflow that waited for its own check run. Includes the
-measurement that said a quarter's objective was worth 23 clicks, drawn from 7% of
-the data.
+**Three commits touched the product; thirty-two touched the plumbing.** Not because
+the backlog was empty — 54 product issues sat open — but because an autonomous system
+is not an agent, it is a chain of handoffs, and nine of the handoffs after a merge
+were silently broken. Whether an agent can write code was settled on day one. What
+took two days was everything between a merged pull request and a closed issue.
 
-Still notes rather than a study: at the time of writing no full unattended night
-had been observed, and saying otherwise would be the same defect the notes are about.
+A health check that took the site down: 980 CI requests spending 190k of a 200k daily
+token budget, 21 of 24 pages serving errors to real users, because verification was
+generating the content it verified. GitHub's anti-recursion defaults blocking the loop
+at three separate depths, and why the fix is to dispatch forward rather than listen
+backward. A mutation test suite that *required* a false positive, so correcting the
+gate would have read as a regression. An issue closed by the commit that fixed
+issue-closing. Four scheduled workflows that concluded `success` having accomplished
+nothing. And a one-hour token expiry that destroyed $5.34 of finished work
+sixty-three minutes in, with the rescue credential sitting unused in the environment
+the whole time.
+
+Still notes rather than a study: no night has yet run unattended **through to the
+close**, the measurement arm has not yet successfully fed one, and saying otherwise
+would be the same defect the notes are about.
 
 ---
 
@@ -92,6 +101,21 @@ of scheduler slots. Storage that is free in one region only — and not the one
 the app runs in. Quotas keyed per model rather than per key. A rolling usage cap
 you cannot buy past. These are not inconveniences to route around; they are what
 determines the architecture.
+
+**A mechanism that is right can still have the wrong scope, and nothing measures
+scope.** The agent work produced three instances in two days, each the same shape: a
+rule that hardened pull-request bodies while a second parser read commit messages and
+closed an issue anyway; a sweep that asserted production was healthy while making it
+unhealthy; a step that reported success for its entire life having never once done its
+job. A rule covering one of two paths reads exactly like a rule covering both — so the
+question to ask of any guardrail is not "is it correct" but "what else could reach
+this outcome, and is that covered too".
+
+**A test that proves a gate can fail does not prove the gate asks the right
+question.** A mutation suite was found *requiring* a false positive — pinning the
+wrong answer so firmly that fixing the gate would have surfaced as a regression in the
+test. Every mutation needs a control on the other side of the boundary, and a check
+that gets narrowed needs its own mutation or the narrowing is unmeasured.
 
 **A rule that lives only in prose is not a rule.** A test suite whose docstring
 promised it made no network calls, a code comment describing a timeout value that
