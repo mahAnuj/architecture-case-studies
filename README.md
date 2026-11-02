@@ -84,6 +84,20 @@ would be the same defect the notes are about.
 
 ---
 
+## Design proposals
+
+**[Fine-tuned models of our own](designs/README.md)** · *proposals, not built*
+
+Two designs for the same question: can a small fine-tuned model take over work
+from a hosted one at no cost, measured against the checks each system already
+trusts? For VivaTrades, a local news classifier that runs where the nightly
+pipeline already runs and frees the rolling cap. For Shubh Bhagya, a model trained
+only on readings that pass the site's own rule checks, served from a free
+allocation with Groq kept as the fallback. No user data and no hosted-model
+outputs in either training set.
+
+---
+
 ## Recurring lessons
 
 Themes that showed up across all three systems:
